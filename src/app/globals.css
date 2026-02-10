@@ -48,58 +48,58 @@
 @layer base {
 
   :root {
-    /* Light Mode (Strict Opaque) */
-    --background: #f3f4f6; /* Gray-100 Page BG */
-    --foreground: #111827; /* Gray-900 */
-    --card: #6b7280; /* Gray-500 Card BG - STRICTOR */
-    --card-foreground: #ffffff; /* Contrast on Gray-500 */
+    /* Light Mode (High Contrast Opaque) */
+    --background: #f8fafc; /* Lighter Gray for better contrast */
+    --foreground: #020617;
+    --card: #64748b; /* Sharper Gray-500 */
+    --card-foreground: #ffffff;
     --popover: #ffffff;
-    --popover-foreground: #111827;
-    --primary: #2563eb; /* Blue-600 */
+    --popover-foreground: #020617;
+    --primary: #2563eb; /* Vibrant Blue-600 */
     --primary-foreground: #ffffff;
-    --secondary: #94a3b8; /* Gray-400 Secondary Button */
-    --secondary-foreground: #111827;
-    --muted: #4b5563; /* Gray-600 */
-    --muted-foreground: #374151; /* Gray-700 */
+    --secondary: #64748b; /* Solid Gray-500 for secondary buttons */
+    --secondary-foreground: #ffffff;
+    --muted: #475569;
+    --muted-foreground: #334155;
     --accent: #2563eb;
     --accent-foreground: #ffffff;
-    --border: #4b5563; /* Gray-600 Border */
+    --border: #334155; /* Solid Darker Gray */
     --input: #ffffff;
     --ring: #2563eb;
     --radius: 0.75rem;
-    --grid-color: #cbd5e1; /* Constant Gray Grid */
-    --heading-gradient: linear-gradient(to right, #1e3a8a, #1d4ed8);
-    --auth-header-bg: #6b7280; /* Gray-500 solid */
+    --grid-color: #94a3b8; /* Much more visible Grid in Light Mode */
+    --heading-gradient: linear-gradient(to right, #1d4ed8, #2563eb);
+    --auth-header-bg: #475569; /* Solid Darker Gray */
     --auth-title: #ffffff;
-    --auth-desc: #f3f4f6;
-    --card-border: #4b5563;
+    --auth-desc: #f1f5f9;
+    --card-border: #334155;
   }
 
   .dark {
-    /* Dark Mode (Strict Opaque) */
-    --background: #0f172a; /* Page BG Blue-900 */
-    --foreground: #f1f5f9;
-    --card: #020617; /* Blue-950 Card BG - STRICTOR */
+    /* Dark Mode (Vibrant Opaque) */
+    --background: #020617; /* Truer Deep Black-Blue */
+    --foreground: #f8fafc;
+    --card: #0f172a; /* Solid Deep Navy */
     --card-foreground: #ffffff;
-    --popover: #0f172a;
-    --popover-foreground: #f1f5f9;
-    --primary: #2563eb; /* Blue-600 */
+    --popover: #020617;
+    --popover-foreground: #f8fafc;
+    --primary: #3b82f6; /* Electric Blue-500 */
     --primary-foreground: #ffffff;
-    --secondary: #1e40af; /* Blue-800 Secondary Button */
+    --secondary: #1d4ed8; /* Vibrant Blue-700 */
     --secondary-foreground: #ffffff;
-    --muted: #1e40af; /* Blue-800 */
-    --muted-foreground: #bfdbfe; /* Blue-200 */
-    --accent: #d97706;
+    --muted: #1e3a8a; /* Deep Blue */
+    --muted-foreground: #93c5fd; /* Light Blue-300 */
+    --accent: #60a5fa;
     --accent-foreground: #ffffff;
-    --border: #1e40af; /* Blue-800 Border */
-    --input: #1e293b;
-    --ring: #2563eb;
-    --grid-color: #334155; /* Solid dark grid */
+    --border: #2563eb; /* Solid Vibrant Blue */
+    --input: #0f172a;
+    --ring: #3b82f6;
+    --grid-color: #1e3a8a; /* Electric blue grid lines */
     --heading-gradient: linear-gradient(to right, #60a5fa, #34d399);
-    --auth-header-bg: #020617; /* Blue-950 solid header */
+    --auth-header-bg: #0f172a; /* Deep Navy solid header */
     --auth-title: #ffffff;
-    --auth-desc: #bfdbfe;
-    --card-border: #1e40af;
+    --auth-desc: #93c5fd;
+    --card-border: #2563eb;
   }
 }
 
