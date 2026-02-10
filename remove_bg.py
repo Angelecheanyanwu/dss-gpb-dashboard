@@ -1,16 +1,24 @@
 from PIL import Image
 
-def remove_white_bg(input_path, output_path):
+def make_transparent(input_path, output_path, color_to_remove):
     img = Image.open(input_path)
     img = img.convert("RGBA")
     datas = img.getdata()
 
     newData = []
     for item in datas:
-        # Change all white (also shades of whites)
-        # to transparent
-        if item[0] > 240 and item[1] > 240 and item[2] > 240:
-            newData.append((255, 255, 255, 0))
+        # Check if the pixel color matches the color to remove (with a small threshold)
+        r, g, b, a = item
+        if color_to_remove == "white":
+            if r > 240 and g > 240 and b > 240:
+                newData.append((255, 255, 255, 0))
+            else:
+                newData.append(item)
+        elif color_to_remove == "black":
+            if r < 15 and g < 15 and b < 15:
+                newData.append((0, 0, 0, 0))
+            else:
+                newData.append(item)
         else:
             newData.append(item)
 
@@ -18,4 +26,5 @@ def remove_white_bg(input_path, output_path):
     img.save(output_path, "PNG")
     print(f"Saved to {output_path}")
 
-remove_white_bg("public/gbp-logo.png", "public/gbp-logo-transparent.png")
+# For ITL - remove black background
+make_transparent("public/itl-logo-v2.png", "public/itl-logo-v2-transparent.png", "black")
