@@ -23,7 +23,7 @@ export default function Home() {
           transition={{ duration: 0.8 }}
           className="mb-8 rounded-full bg-card p-6 shadow-xl ring-1 ring-border"
         >
-          <ShieldCheck className="h-16 w-16 text-secondary" />
+          <ShieldCheck className="h-16 w-16 text-primary" />
         </motion.div>
 
         <motion.h1
@@ -67,7 +67,7 @@ export default function Home() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 20, opacity: 0 }}
-              className="grid w-full max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3"
+              className="grid w-full max-w-2xl grid-cols-1 gap-6 sm:grid-cols-2"
             >
               <OptionCard 
                 href="/dashboard/itl"
@@ -75,13 +75,6 @@ export default function Home() {
                 icon={<div className="relative mb-4 h-16 w-40 overflow-hidden"><Image src="/itl-logo-v2-transparent.png" alt="ITL Logo" fill className="object-contain" /></div>}
                 description="Inspired Technologies Limited"
                 color="blue"
-              />
-              <OptionCard 
-                href="/dashboard/gbp"
-                title="GBP"
-                icon={<div className="relative mb-4 h-20 w-32 overflow-hidden"><Image src="/gbp-logo-transparent.png" alt="GBP Logo" fill className="object-contain" /></div>}
-                description="Galaxy BackBone"
-                color="emerald"
               />
               <OptionCard 
                 href="/dashboard/dss"
@@ -94,8 +87,6 @@ export default function Home() {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Footer / Status Bar - optional decorative element */}
       <div className="absolute bottom-4 left-0 right-0 flex justify-between px-8 text-xs font-mono text-slate-600">
         <span>Developed by Inspired Technologies Limited </span>
         <span>V.2.0.4</span>

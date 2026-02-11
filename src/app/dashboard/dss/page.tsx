@@ -66,7 +66,7 @@ export default function DSSPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex min-h-screen flex-col items-center justify-center p-4"
+            className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4"
           >
             <AuthCard
               title="Identity Verification"
@@ -79,10 +79,9 @@ export default function DSSPage() {
                   <input
                     type="email"
                     required
-                    placeholder="angel.eche@dss.gov.ng"
-                    style={{ backgroundColor: 'var(--card)', opacity: 1 }}
+                    style={{ backgroundColor: '#ffffff', opacity: 1 }}
                     className={cn(
-                      "w-full rounded-lg border-2 border-border py-3 pl-10 pr-4 outline-none transition-all placeholder:text-muted-foreground focus:border-secondary focus:ring-0 shadow-sm",
+                      "w-full rounded-lg border-2 border-border py-3 pl-10 pr-4 outline-none transition-all text-slate-900 focus:border-blue-600 focus:ring-0 shadow-sm",
                       error && "border-red-500 focus:border-red-500"
                     )}
                     value={email}
@@ -103,7 +102,7 @@ export default function DSSPage() {
                   type="submit"
                   disabled={isLoading}
                   style={{ backgroundColor: 'var(--primary)', opacity: 1 }}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg py-3 font-bold text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-md"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-white/20 py-3 font-bold text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-md"
                 >
                   {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Request Access Token"}
                 </button>
@@ -111,8 +110,8 @@ export default function DSSPage() {
                 <div className="pt-2">
                   <Link 
                     href="/" 
-                    style={{ backgroundColor: 'var(--secondary)', opacity: 1 }}
-                    className="flex w-full items-center justify-center rounded-lg py-3 text-base font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-md"
+                    style={{ backgroundColor: '#94a3b8', opacity: 1 }}
+                    className="flex w-full items-center justify-center rounded-lg border-2 border-white/20 py-3 text-base font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-md"
                   >
                     Back
                   </Link>
@@ -128,7 +127,7 @@ export default function DSSPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex min-h-screen items-center justify-center p-4"
+            className="relative z-10 flex min-h-screen items-center justify-center p-4"
           >
             <AuthCard
               title="Token Verification"
@@ -136,21 +135,38 @@ export default function DSSPage() {
               onSubmit={handleTokenSubmit}
             >
               <div className="space-y-4">
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    placeholder="Enter 6-digit token"
-                    style={{ backgroundColor: 'var(--card)', opacity: 1 }}
-                    className={cn(
-                      "w-full rounded-lg border-2 border-border py-3 pl-10 pr-4 outline-none transition-all placeholder:text-muted-foreground focus:border-secondary focus:ring-0 shadow-sm",
-                      error && "border-red-500 focus:border-red-500"
-                    )}
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
-                  />
+                <div className="flex justify-between gap-2">
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <input
+                      key={index}
+                      id={`token-${index}`}
+                      type="text"
+                      maxLength={1}
+                      required
+                      style={{ backgroundColor: '#ffffff', opacity: 1 }}
+                      className={cn(
+                        "h-12 w-12 rounded-lg border-2 border-border text-center text-xl font-bold text-slate-900 outline-none transition-all focus:border-blue-600 focus:ring-0 shadow-sm",
+                        error && "border-red-500 focus:border-red-500"
+                      )}
+                      value={token[index] || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const newToken = token.split('');
+                        newToken[index] = val.slice(-1);
+                        const joined = newToken.join('');
+                        setToken(joined);
+                        
+                        if (val && index < 5) {
+                          document.getElementById(`token-${index + 1}`)?.focus();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Backspace' && !token[index] && index > 0) {
+                          document.getElementById(`token-${index - 1}`)?.focus();
+                        }
+                      }}
+                    />
+                  ))}
                 </div>
                 {error && (
                   <motion.div
@@ -166,7 +182,7 @@ export default function DSSPage() {
                   type="submit"
                   disabled={isLoading}
                   style={{ backgroundColor: 'var(--primary)', opacity: 1 }}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg py-3 font-bold text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-md"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-white/20 py-3 font-bold text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-md"
                 >
                   {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Authenticate Identity"}
                 </button>
@@ -174,8 +190,8 @@ export default function DSSPage() {
                   <button
                     type="button"
                     onClick={() => setStep('email')}
-                    style={{ backgroundColor: 'var(--secondary)', opacity: 1 }}
-                    className="flex w-full items-center justify-center rounded-lg py-3 text-base font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-md"
+                    style={{ backgroundColor: '#94a3b8', opacity: 1 }}
+                    className="flex w-full items-center justify-center rounded-lg border-2 border-white/20 py-3 text-base font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-md"
                   >
                     Back 
                   </button>
@@ -280,32 +296,27 @@ export default function DSSPage() {
 function AuthCard({ title, description, children, onSubmit }: { title: string, description: string, children: React.ReactNode, onSubmit: (e: React.FormEvent) => void }) {
   return (
     <div 
-      style={{ borderColor: 'var(--card-border)' }}
-      className="w-full max-w-md overflow-hidden rounded-2xl border-2 bg-card shadow-2xl"
+      style={{ backgroundColor: '#5F6B7A', opacity: 1, borderColor: 'var(--card-border)' }}
+      className="relative z-20 w-full max-w-md overflow-hidden rounded-2xl border-2 p-8 shadow-2xl"
     >
-      <div 
-        style={{ background: 'var(--auth-header-bg)', borderBottomColor: 'var(--card-border)' }}
-        className="p-8 text-center border-b-2"
-      >
+      <div className="mb-6 text-center">
         <div className="flex justify-center mb-6">
            <div className="relative h-24 w-24">
               <Image src="/dss-logo.png" alt="DSS Logo" fill className="object-contain" />
            </div>
         </div>
         <h2 
-          style={{ color: 'var(--auth-title)' }}
-          className="mb-2 text-2xl font-bold tracking-tight"
+          className="mb-2 text-2xl font-bold tracking-tight text-white"
         >
           {title}
         </h2>
         <p 
-          style={{ color: 'var(--auth-desc)' }}
-          className="text-sm font-bold"
+          className="text-sm font-bold text-white/80"
         >
           {description}
         </p>
       </div>
-      <form onSubmit={onSubmit} className="p-8">
+      <form onSubmit={onSubmit} className="space-y-4">
         {children}
       </form>
     </div>
