@@ -48,31 +48,31 @@
 @layer base {
 
   :root {
-    /* Light Mode (High Contrast Opaque) */
-    --background: #f8fafc; /* Lighter Gray for better contrast */
-    --foreground: #020617;
-    --card: #64748b; /* Sharper Gray-500 */
-    --card-foreground: #ffffff;
+    /* Light Mode (Premium Professional) */
+    --background: #f1f5f9; /* Slate 100 */
+    --foreground: #0f172a; /* Slate 900 */
+    --card: #f8fafc; /* Subtle gray cards for enterprise aesthetic */
+    --card-foreground: #0f172a;
     --popover: #ffffff;
-    --popover-foreground: #020617;
-    --primary: #2563eb; /* Vibrant Blue-600 */
+    --popover-foreground: #0f172a;
+    --primary: #2563eb; /* Blue 600 */
     --primary-foreground: #ffffff;
-    --secondary: #64748b; /* Solid Gray-500 for secondary buttons */
+    --secondary: #64748b; /* Slate 500 */
     --secondary-foreground: #ffffff;
-    --muted: #475569;
-    --muted-foreground: #334155;
-    --accent: #2563eb;
-    --accent-foreground: #ffffff;
-    --border: #334155; /* Solid Darker Gray */
+    --muted: #f8fafc; /* Slate 50 */
+    --muted-foreground: #475569; /* Slate 600 */
+    --accent: #eff6ff; /* Blue 50 */
+    --accent-foreground: #1e40af; /* Blue 800 */
+    --border: #e2e8f0; /* Slate 200 */
     --input: #ffffff;
-    --ring: #2563eb;
+    --ring: #3b82f6;
     --radius: 0.75rem;
-    --grid-color: #94a3b8; /* Much more visible Grid in Light Mode */
-    --heading-gradient: linear-gradient(to right, #1d4ed8, #2563eb);
-    --auth-header-bg: #475569; /* Solid Darker Gray */
+    --grid-color: #cbd5e1; /* Slate 300 */
+    --heading-gradient: linear-gradient(to right, #1e40af, #2563eb);
+    --auth-header-bg: #1e293b; /* Keep auth header dark for premium feel */
     --auth-title: #ffffff;
-    --auth-desc: #f1f5f9;
-    --card-border: #334155;
+    --auth-desc: #94a3b8;
+    --card-border: #e2e8f0;
   }
 
   .dark {
