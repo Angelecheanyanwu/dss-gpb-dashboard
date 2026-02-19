@@ -1,4 +1,4 @@
-'use strict';
+'use client';
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -90,26 +90,17 @@ const Typewriter = ({ text, delay = 30, onComplete }: { text: string; delay?: nu
 const SeverityAlert = ({ notification, onClose }: SeverityProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [typingComplete, setTypingComplete] = useState(false);
-  // Normalize classification to handle case-sensitivity and common misspelling from backend
+  
   const rawClassification = (notification.classification || 'Simple').toLowerCase();
+  let classification: 'Simple' | 'Minor' | 'Serious' | 'Severe' | 'Grievous' = 'Simple';
   
-  let classification: 'Simple' | 'Minor' | 'Serious' | 'Severe' | 'Grievous';
-  
-  if (rawClassification === 'grevious' || rawClassification === 'grievous') {
-    classification = 'Grievous';
-  } else if (rawClassification === 'severe') {
-    classification = 'Severe';
-  } else if (rawClassification === 'serious') {
-    classification = 'Serious';
-  } else if (rawClassification === 'minor') {
-    classification = 'Minor';
-  } else {
-    classification = 'Simple';
-  }
-  
+  if (rawClassification === 'grevious' || rawClassification === 'grievous') classification = 'Grievous';
+  else if (rawClassification === 'severe') classification = 'Severe';
+  else if (rawClassification === 'serious') classification = 'Serious';
+  else if (rawClassification === 'minor') classification = 'Minor';
+
   const isHighIntensity = ['Serious', 'Severe', 'Grievous'].includes(classification);
 
-  // Animation Variants
   const variants = {
     Simple: { scale: [1, 1.05, 1], transition: { duration: 0.8, repeat: 1 } },
     Minor: { scale: [1, 1.1, 1], x: [0, -2, 2, 0], transition: { duration: 0.5, repeat: 1 } },
@@ -127,11 +118,11 @@ const SeverityAlert = ({ notification, onClose }: SeverityProps) => {
   };
 
   const colors = {
-    Simple: "bg-blue-600 border-blue-400 text-white", // Blue for Simple
-    Minor: "bg-yellow-500 border-yellow-300 text-slate-900 shadow-yellow-500/20", // Yellow for Minor
-    Serious: "bg-red-600 border-red-400 text-white shadow-red-600/30", // Red for Serious
+    Simple: "bg-blue-600 border-blue-400 text-white",
+    Minor: "bg-yellow-500 border-yellow-300 text-slate-900 shadow-yellow-500/20",
+    Serious: "bg-red-600 border-red-400 text-white shadow-red-600/30",
     Severe: "bg-red-700 border-red-500 text-white shadow-red-700/40",
-    Grievous: "bg-red-800 border-red-500 text-white shadow-red-800/60 ring-4 ring-red-600/30",
+    Grievous: "bg-red-800 border-red-500 text-white shadow-red-800/60",
   };
 
   const Icons = {
@@ -149,140 +140,120 @@ const SeverityAlert = ({ notification, onClose }: SeverityProps) => {
     return () => alarm?.stop();
   }, [classification]);
 
+  const detailText = `${notification.person_name} has been detected at ${notification.camera_location} and ${new Date(notification.timestamp).toLocaleTimeString()} on ${notification.camera_id}. Tracking ID: ${notification.tracking_id}.`;
+
   if (isHighIntensity) {
-    const detailText = `${notification.person_name} has been detected at ${notification.camera_location} and ${new Date(notification.timestamp).toLocaleTimeString()} on ${notification.camera_id}. He has been assigned a tracking id ${notification.tracking_id}.`;
-
     return (
-      <>
-        <motion.div 
-          layout
-          animate={variants[classification]}
-          className={cn(
-            "w-[650px] min-h-[400px] p-8 rounded-none border-[3px] text-center shadow-2xl relative overflow-hidden pointer-events-auto", 
-            cssColors[classification],
-            "font-mono bg-slate-950/95 flex flex-col items-center justify-center"
-          )}
-        >
-          {/* Cyber Corners */}
-          <div className={cn("absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4", classification === 'Simple' ? 'border-blue-500' : 'border-red-500')} />
-          <div className={cn("absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4", classification === 'Simple' ? 'border-blue-500' : 'border-red-500')} />
-          <div className={cn("absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4", classification === 'Simple' ? 'border-blue-500' : 'border-red-500')} />
-          <div className={cn("absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4", classification === 'Simple' ? 'border-blue-500' : 'border-red-500')} />
+      <motion.div 
+        initial={{ x: '100vw', opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: '-100vw', opacity: 0, transition: { duration: 0.3 } }}
+        transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+        className="pointer-events-auto flex items-center justify-center relative z-[9999]"
+      >
+        <div className="flex items-center">
+          {/* Hammer Handle (Body - Left) */}
+          <motion.div 
+            animate={(variants as any)[classification]}
+            className={cn(
+              "w-[460px] h-[320px] p-6 border-[3px] border-r-0 relative bg-slate-950 flex flex-col justify-between overflow-hidden",
+              cssColors[classification]
+            )}
+          >
+            <div className="flex justify-between items-center text-[10px] opacity-40 uppercase font-mono">
+              <span>Investigation_Dossier</span>
+              <span className="flex items-center gap-1"><div className="w-1 h-1 bg-red-500 animate-pulse" /> LIVE_SCAN</span>
+            </div>
 
-          <div className="w-full flex justify-between items-center text-[10px] opacity-60 z-10 relative mb-4">
-            <span>SEC_SYSTEM_v5.0_PROXIMITY_ALERT</span>
-            <span>{notification.camera_id}</span>
-          </div>
-
-          <div className={cn("flex w-full h-full relative z-10", isExpanded ? "flex-row gap-8 text-left" : "flex-col items-center")}>
-            {/* Image / Icon Section */}
-            <motion.div 
-              layout
-              animate={{
-                width: isExpanded ? 240 : 120,
-                height: isExpanded ? 240 : 120,
-              }}
-              className="relative shrink-0 flex items-center justify-center p-1 border-2 border-red-500/30 bg-red-950/20"
-            >
-              <Image 
-                src="/poi_profile.png" 
-                alt="POI" 
-                layout="fill"
-                objectFit="cover"
-                className="opacity-80 grayscale hue-rotate-15 contrast-125 transition-all duration-700 hover:grayscale-0 hover:contrast-100"
-              />
-              <motion.div 
-                animate={{ rotate: 360 }}
-                transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-                className="absolute inset-[-10px] border border-dashed border-red-500/30 rounded-full"
-              />
-              {!isExpanded && (
-                <Icon className="h-12 w-12 text-red-500 absolute z-10 drop-shadow-[0_0_10px_#ef4444]" />
-              )}
-            </motion.div>
-
-            {/* Info Section */}
-            <div className={cn("flex-1 space-y-4", !isExpanded && "text-center")}>
+            <div className="flex-1 flex flex-col justify-center gap-6 font-mono">
               {!isExpanded ? (
                 <>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="w-2 h-2 bg-red-500 animate-pulse" />
-                      <h2 className="text-xl font-black tracking-widest uppercase text-red-500">
-                        {classification === 'Grievous' ? 'GRIEVOUS_THREAT' : 'SECURITY_BREACH'}
-                      </h2>
-                    </div>
-                    <p className="text-sm font-black text-white">{notification.person_name}</p>
-                    <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest">{notification.camera_location}</p>
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-black tracking-tighter uppercase text-red-500 italic leading-none">
+                      {classification === 'Grievous' ? 'GRIEVOUS_THREAT' : 'SECURITY_BREACH'}
+                    </h2>
+                    <p className="text-sm font-black text-white px-2 py-1 bg-red-500/20 w-fit">{notification.person_name}</p>
                   </div>
-
+                  
                   <motion.button 
+                    whileHover={{ scale: 1.02, x: 5 }}
                     whileTap={{ scale: 0.95 }}
-                    onPointerDown={(e) => {
-                      e.stopPropagation();
-                      setIsExpanded(true);
-                    }}
-                    className={cn(
-                      "w-full py-4 text-white font-black text-sm rounded-none border-2 transition-all shadow-2xl uppercase tracking-[0.2em] relative z-10",
-                      classification === 'Simple' ? 'bg-blue-600 border-blue-400' : 'bg-red-600 border-red-400'
-                    )}
+                    onClick={(e) => { e.stopPropagation(); setIsExpanded(true); }}
+                    className="w-full py-4 bg-red-600/10 text-red-500 font-black text-xs rounded-none border-2 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] uppercase tracking-[0.3em] hover:bg-red-500 hover:text-white transition-all cursor-pointer"
                   >
                     Click to view details
                   </motion.button>
                 </>
               ) : (
-                <div className="space-y-6 pt-2">
-                  <div className="space-y-1">
-                    <h2 className="text-2xl font-black tracking-tighter uppercase text-red-500 italic leading-none">THREAT_DOSSIER</h2>
-                    <div className="h-0.5 w-16 bg-red-500/50" />
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-xl font-black tracking-tighter uppercase text-red-500 italic leading-none mb-1">Subject_Log</h2>
+                    <div className="h-0.5 w-12 bg-red-500/40" />
                   </div>
-
-                  <div className="text-sm font-bold text-red-100 leading-relaxed min-h-[100px] border-l-2 border-red-500/30 pl-4 bg-red-500/5 py-2">
-                    <Typewriter 
-                      text={detailText} 
-                      delay={70}
-                      onComplete={() => setTypingComplete(true)} 
-                    />
+                  <div className="text-sm font-bold text-red-100 leading-relaxed min-h-[120px] bg-red-500/5 p-4 border-l-2 border-red-500/30">
+                    <Typewriter text={detailText} delay={70} onComplete={() => setTypingComplete(true)} />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-[10px] font-bold uppercase opacity-50">
-                    <div>Status: <span className="text-red-400">TRACKING_LIVE</span></div>
-                    <div>Quality: <span className="text-red-400">{(notification.face_quality * 100).toFixed(0)}%_CONF</span></div>
-                  </div>
-
+                  
                   <motion.button 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
+                    whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
-                    onPointerDown={(e) => {
-                      e.stopPropagation();
-                      onClose();
-                    }}
-                    className="w-full py-4 bg-red-600 text-white font-black text-sm rounded-none border-2 border-red-400 shadow-[0_0_30px_rgba(239,68,68,0.5)] uppercase tracking-[0.3em] hover:bg-red-500 hover:shadow-red-500/70"
+                    onClick={(e) => { e.stopPropagation(); onClose(); }}
+                    className="w-full py-3 bg-red-600 text-white font-black text-[10px] rounded-none border-2 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.4)] uppercase tracking-[0.3em] hover:bg-red-500 transition-colors cursor-pointer"
                   >
                     FAST TRACK ARREST
                   </motion.button>
                 </div>
               )}
             </div>
-          </div>
-        </motion.div>
-        
-        {/* Cinematic Glitch Frames */}
-        <motion.div 
-           initial={{ opacity: 0 }}
-           animate={{ 
-             opacity: isExpanded ? [0, 0.4, 0] : [0, 0.2, 0],
-             scale: isExpanded ? 1.05 : 1
-           }}
-           transition={{ duration: isExpanded ? 0.5 : 2, repeat: Infinity }}
-           className={cn(
-             "absolute inset-0 pointer-events-none border-[20px] transition-all duration-700",
-             classification === 'Simple' ? 'border-blue-900/10' : 'border-red-900/10'
-           )}
-        />
-      </>
+          </motion.div>
+
+          {/* Hammer Head (Right - Image) */}
+          <motion.div 
+            animate={(variants as any)[classification]}
+            className={cn(
+              "w-[300px] h-[400px] border-[3px] relative bg-black shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center p-2",
+              cssColors[classification]
+            )}
+          >
+            <div className="relative w-full h-full border-2 border-red-500/20 bg-slate-900 overflow-hidden">
+              <Image src="/poi_profile.png" alt="POI" fill style={{ objectFit: 'cover' }} className={cn("transition-all duration-1000", isExpanded ? "opacity-100 contrast-125 saturate-150" : "opacity-40 grayscale")} />
+              <div className="absolute inset-0 bg-red-500/5 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-red-500/10 to-transparent h-20 w-full animate-scanline pointer-events-none" />
+              
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="absolute top-2 left-2 text-[8px] font-black text-red-500 space-y-1 bg-black/60 p-1 font-mono z-10"
+                  >
+                    <p>MATCH_ID: {Math.random().toFixed(3)}</p>
+                    <p>CONF: 99.2%</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <motion.div 
+                animate={{ rotate: 360, scale: isExpanded ? 1.2 : 1 }}
+                transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+                className="absolute inset-4 border border-red-500/30 border-dashed rounded-full pointer-events-none"
+              />
+            </div>
+            
+            <div className="mt-2 text-[10px] font-black text-red-500 uppercase flex items-center gap-2 font-mono">
+              <div className="w-1.5 h-1.5 bg-red-500 animate-pulse rounded-full" />
+              {notification.person_name}
+            </div>
+
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-red-500" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-red-500" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-red-500" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-red-500" />
+          </motion.div>
+        </div>
+      </motion.div>
     );
   }
 
@@ -292,34 +263,22 @@ const SeverityAlert = ({ notification, onClose }: SeverityProps) => {
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8, x: 50 }}
       layout
-      className={cn(
-        "pointer-events-auto w-96 rounded-2xl border-2 p-5 shadow-2xl flex items-start gap-4 mb-4",
-        colors[classification]
-      )}
+      className={cn("pointer-events-auto w-96 rounded-2xl border-2 p-5 shadow-2xl flex items-start gap-4 mb-4", colors[classification])}
     >
-      <div className="p-2.5 rounded-xl bg-white/10 shrink-0">
-        <Icon className="h-6 w-6" />
-      </div>
+      <div className="p-2.5 rounded-xl bg-white/10 shrink-0"><Icon className="h-6 w-6" /></div>
       <div className="flex-1 space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-black uppercase tracking-widest opacity-70">{classification} Alert</span>
           <span className="text-[10px] opacity-50 font-mono font-bold">{new Date(notification.timestamp).toLocaleTimeString()}</span>
         </div>
-        <p className="text-sm font-bold leading-tight">
-          {notification.person_name} apprehended for a {classification} crime
-        </p>
+        <p className="text-sm font-bold leading-tight">{notification.person_name} apprehended for a {classification} crime</p>
         <p className="text-[10px] opacity-70 font-bold uppercase tracking-wider">{notification.camera_location}</p>
       </div>
       <motion.button 
         whileTap={{ scale: 0.9 }}
-        onPointerDown={(e) => {
-          e.stopPropagation();
-          onClose();
-        }}
+        onPointerDown={(e) => { e.stopPropagation(); onClose(); }}
         className="text-white/30 hover:text-white transition-colors p-1"
-      >
-        <LucideX className="h-4 w-4" />
-      </motion.button>
+      ><LucideX className="h-4 w-4" /></motion.button>
     </motion.div>
   );
 };
@@ -341,25 +300,27 @@ export const NotificationManager = () => {
   }, [notifications]);
 
   const removeAlert = useCallback((id: string) => {
-    const alertToRemove = activeAlerts.find(n => n.id === id);
-    if (!alertToRemove) return;
+    setActiveAlerts(prev => {
+      const alertToRemove = prev.find(n => n.id === id);
+      if (!alertToRemove) return prev;
 
-    // Suppress duplicates: remove all active alerts for the same person & location
-    setActiveAlerts(prev => prev.filter(n => 
-      n.id !== id && 
-      !(n.person_name === alertToRemove.person_name && n.camera_location === alertToRemove.camera_location)
-    ));
+      // Grouped removal: remove the specific alert and any duplicates (same person + location)
+      const filtered = prev.filter(n => 
+        n.id !== id && 
+        !(n.person_name === alertToRemove.person_name && n.camera_location === alertToRemove.camera_location)
+      );
 
-    // Mark as read in the store
-    dispatch(markAsRead(id));
-    
-    // Also mark any potential duplicates as read in the store to be safe
-    activeAlerts.forEach(n => {
-      if (n.person_name === alertToRemove.person_name && n.camera_location === alertToRemove.camera_location) {
-        dispatch(markAsRead(n.id));
-      }
+      // Perform store cleanup side-effects
+      dispatch(markAsRead(id));
+      prev.forEach(n => {
+        if (n.person_name === alertToRemove.person_name && n.camera_location === alertToRemove.camera_location) {
+          dispatch(markAsRead(n.id));
+        }
+      });
+
+      return filtered;
     });
-  }, [dispatch, activeAlerts]);
+  }, [dispatch]);
 
   // Determine if we have high-intensity alerts
   const highIntensityAlerts = activeAlerts.filter(n => 
@@ -373,30 +334,27 @@ export const NotificationManager = () => {
 
   return (
     <>
-      <AnimatePresence>
-        {hasHighIntensity && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9998] bg-black/10 backdrop-blur-sm pointer-events-none"
-          />
-        )}
-      </AnimatePresence>
-
       <div className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           {latestHighIntensity && (
-            <SeverityAlert 
-              key={latestHighIntensity.id} 
-              notification={latestHighIntensity} 
-              onClose={() => removeAlert(latestHighIntensity.id)} 
-            />
+            <React.Fragment key={latestHighIntensity.id}>
+              {/* Cinematic Backdrop linked to alert lifecycle */}
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-md z-[-1] pointer-events-none"
+              />
+              <SeverityAlert 
+                notification={latestHighIntensity} 
+                onClose={() => removeAlert(latestHighIntensity.id)} 
+              />
+            </React.Fragment>
           )}
         </AnimatePresence>
       </div>
 
-      <div className="fixed top-24 right-6 z-[9999] pointer-events-none flex flex-col items-end max-h-[80vh] overflow-visible">
+      <div className="fixed top-24 right-6 z-[9999] pointer-events-none flex flex-col items-end max-h-[80vh] overflow-visible gap-4">
         <AnimatePresence mode="popLayout">
           {sideToasts.map(notification => (
             <SeverityAlert 

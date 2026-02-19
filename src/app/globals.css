@@ -20,6 +20,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --color-blue-grey: var(--blue-grey);
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -48,58 +49,78 @@
 @layer base {
 
   :root {
-    /* Light Mode (Premium Professional) */
-    --background: #f1f5f9; /* Slate 100 */
-    --foreground: #0f172a; /* Slate 900 */
-    --card: #f8fafc; /* Subtle gray cards for enterprise aesthetic */
-    --card-foreground: #0f172a;
+    /* Light Mode (High Contrast Opaque - ORIGINAL) */
+    --background: #f8fafc;
+    --foreground: #020617;
+    --card: #64748b;
+    --card-foreground: #ffffff;
     --popover: #ffffff;
-    --popover-foreground: #0f172a;
-    --primary: #2563eb; /* Blue 600 */
+    --popover-foreground: #020617;
+    --primary: #2563eb;
     --primary-foreground: #ffffff;
-    --secondary: #64748b; /* Slate 500 */
+    --secondary: #64748b;
     --secondary-foreground: #ffffff;
-    --muted: #f8fafc; /* Slate 50 */
-    --muted-foreground: #475569; /* Slate 600 */
-    --accent: #eff6ff; /* Blue 50 */
-    --accent-foreground: #1e40af; /* Blue 800 */
-    --border: #e2e8f0; /* Slate 200 */
+    --muted: #475569;
+    --muted-foreground: #334155;
+    --accent: #2563eb;
+    --accent-foreground: #ffffff;
+    --border: #334155;
     --input: #ffffff;
-    --ring: #3b82f6;
+    --ring: #2563eb;
     --radius: 0.75rem;
-    --grid-color: #cbd5e1; /* Slate 300 */
-    --heading-gradient: linear-gradient(to right, #1e40af, #2563eb);
-    --auth-header-bg: #1e293b; /* Keep auth header dark for premium feel */
+    --grid-color: #94a3b8;
+    --heading-gradient: linear-gradient(to right, #1d4ed8, #2563eb);
+    --auth-header-bg: #475569;
     --auth-title: #ffffff;
-    --auth-desc: #94a3b8;
-    --card-border: #e2e8f0;
+    --auth-desc: #f1f5f9;
+    --card-border: #334155;
+    --blue-grey: #607d8b;
   }
 
   .dark {
-    /* Dark Mode (Vibrant Opaque) */
-    --background: #020617; /* Truer Deep Black-Blue */
+    /* Dark Mode (Vibrant Opaque - ORIGINAL) */
+    --background: #020617;
     --foreground: #f8fafc;
-    --card: #0f172a; /* Solid Deep Navy */
+    --card: #0f172a;
     --card-foreground: #ffffff;
     --popover: #020617;
     --popover-foreground: #f8fafc;
-    --primary: #3b82f6; /* Electric Blue-500 */
+    --primary: #3b82f6;
     --primary-foreground: #ffffff;
-    --secondary: #1d4ed8; /* Vibrant Blue-700 */
+    --secondary: #1d4ed8;
     --secondary-foreground: #ffffff;
-    --muted: #1e3a8a; /* Deep Blue */
-    --muted-foreground: #93c5fd; /* Light Blue-300 */
+    --muted: #1e3a8a;
+    --muted-foreground: #93c5fd;
     --accent: #60a5fa;
     --accent-foreground: #ffffff;
-    --border: #2563eb; /* Solid Vibrant Blue */
+    --border: #2563eb;
     --input: #0f172a;
     --ring: #3b82f6;
-    --grid-color: #1e3a8a; /* Electric blue grid lines */
+    --grid-color: #1e3a8a;
     --heading-gradient: linear-gradient(to right, #60a5fa, #34d399);
-    --auth-header-bg: #0f172a; /* Deep Navy solid header */
+    --auth-header-bg: #0f172a;
     --auth-title: #ffffff;
     --auth-desc: #93c5fd;
     --card-border: #2563eb;
+    --blue-grey: #455a64;
+  }
+
+  .mature-theme {
+    /* Scoped Mature Dashboard Design */
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --card: #1e293b;
+    --card-foreground: #f8fafc;
+    --primary: #f8fafc;
+    --primary-foreground: #0f172a;
+    --secondary: #475569;
+    --border: #334155;
+    --muted: #334155;
+    --muted-foreground: #94a3b8;
+    --card-border: #334155;
+    --blue-grey: #455a64;
+    --grid-color: #334155;
+    font-family: var(--font-inter), sans-serif;
   }
 }
 
@@ -114,5 +135,12 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     transition: background-color 0.2s ease, color 0.2s ease;
     opacity: 1 !important;
+  }
+  @keyframes scanline {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(400%); }
+  }
+  .animate-scanline {
+    animation: scanline 3s linear infinite;
   }
 }

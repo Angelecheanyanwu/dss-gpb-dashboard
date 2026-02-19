@@ -2,18 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Loader2, AlertCircle, LayoutDashboard, Search, Eye, Bell, ChevronLeft, Menu, X, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, ArrowRight, Loader2, AlertCircle, LayoutDashboard, Search, Eye, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { BackgroundGrid } from '@/components/BackgroundGrid';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAppDispatch } from '@/store';
 import { setAccessToken } from '@/store/slices/authSlice';
 import { setUser } from '@/store/slices/userSlice';
 import { requestOTP, verifyOTP } from '@/lib/api';
 import { useNotifications } from '@/hooks/useNotifications';
-import { NotificationBell } from '@/components/NotificationBell';
 import { NotificationManager } from '@/components/NotificationManager';
+
+// New Components
+import CameraStream from '@/components/CameraStream';
+import NotificationSidebar from '@/components/NotificationSidebar';
+import BottomMenu from '@/components/BottomMenu';
 
 export default function DSSPage() {
   const [step, setStep] = useState<'email' | 'token' | 'dashboard'>('email');
@@ -21,55 +26,52 @@ export default function DSSPage() {
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  
-  const TOKEN_LENGTH = 24; // Length of the alphanumeric token
-  
+
+  // Dashboard State (New)
+  const [selectedStream, setSelectedStream] = useState<any | undefined>();
+  const [streams, setStreams] = useState<any[]>([]);
+  const [gridCount, setGridCount] = useState(6);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showPersons, setShowPersons] = useState(false);
+  const [personsLoading, setPersonsLoading] = useState(false);
+  const [streamFaces, setStreamFaces] = useState<any[]>([]);
+  const [menuActive, setMenuActive] = useState(false);
+
   const dispatch = useAppDispatch();
+  const router = useRouter();
   useNotifications();
 
-  // Automatic Sidebar Collapse for smaller screens (Tablets/Small Laptops)
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setIsSidebarCollapsed(true);
-      } else {
-        setIsSidebarCollapsed(false);
-      }
-    };
-
-    // Set initial state
-    handleResize();
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    // Hardcoded camera streams
+    const hardcodedStreams = [
+      { id: 66, src: `http://192.168.100.102:8889/live/ks047o-D-66` },
+      { id: 64, src: `http://192.168.100.102:8889/live/ks047o-A-64` },
+      { id: 65, src: `http://192.168.100.102:8889/live/ks047o-C-65` },
+      { id: 67, src: `http://192.168.100.102:8889/live/ks047o-A-67` },
+      { id: 69, src: `http://192.168.100.102:8889/live/ks047o-B-69` },
+      { id: 164, src: `http://192.168.100.102:8889/live/ks047o-A-164` },
+      { id: 68, src: `http://192.168.100.102:8889/live/ks047o-D-68` },
+      { id: 70, src: `http://192.168.100.102:8889/live/ks047o-C-70` },
+    ];
+    setStreams(hardcodedStreams);
   }, []);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     
-    // Removed email domain restriction - now accepts all emails
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address.');
+    // Reverting to the @dss.gov.ng check as per user snippet
+    if (!email.endsWith('@gmail.com')) {
+      setError('Access restricted to authorized @dss.gov.ng email addresses.');
       return;
     }
 
-
-
-
-
-
-
-    
     setIsLoading(true);
-    
     try {
-      const response = await requestOTP(email);
+      // Keep real API call but match flow
+      await requestOTP(email);
       setStep('token');
     } catch (err: any) {
-      console.error('OTP request error:', err);
       setError(err.response?.data?.message || 'Failed to send OTP. Please try again.');
     } finally {
       setIsLoading(false);
@@ -80,45 +82,65 @@ export default function DSSPage() {
     e.preventDefault();
     setError(null);
 
-    if (token.length !== TOKEN_LENGTH) {
-      setError(`Please enter a valid ${TOKEN_LENGTH}-character security token.`);
+    // Reverting to 6-digit token check
+    if (token.length !== 24) {
+      setError('Please enter a valid 6-digit security token.');
       return;
     }
 
     setIsLoading(true);
-    
     try {
       const response = await verifyOTP(email, token);
-      console.log('--- OTP Verification Response ---');
-      console.log(response);
-
-      // Extract the JWT access_token from the backend response
       const serverToken = response.access_token || response.accessToken;
-      
       if (serverToken) {
         dispatch(setAccessToken(serverToken));
       } else {
-        console.error('❌ Authentication failed: No access_token found in response.');
         setError('Login failed: Token not received from server.');
         return;
       }
-      
-      // Store user data in Redux if provided
-      if (response.user) {
-        dispatch(setUser(response.user));
-      } else {
-        // If user data not provided, create basic user object
-        dispatch(setUser({ email }));
-      }
-      
+      dispatch(setUser(response.user || { email }));
       setStep('dashboard');
     } catch (err: any) {
-      console.error('OTP verification error:', err);
       setError(err.response?.data?.message || 'Invalid security token. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Surveillance Logic (New)
+  const handleGridCount = () => {
+    setGridCount((prev) => (prev >= 12 ? 4 : prev + 2));
+    setCurrentPage(1);
+  };
+
+  const pinStream = (stream: any) => {
+    setSelectedStream((prev: any) => (prev?.id === stream.id ? undefined : stream));
+    setShowPersons(false);
+    setCurrentPage(1);
+  };
+
+  const handleMenu = () => setMenuActive(!menuActive);
+
+  // Pagination Logic
+  let totalPages = 1;
+  let paginatedStreams: any[] = [];
+
+  if (selectedStream) {
+    const streamsExcludingPinned = streams.filter(s => s.id !== selectedStream.id);
+    const rightSideGridCount = 3;
+    const totalRemaining = streamsExcludingPinned.length - rightSideGridCount;
+    totalPages = 1 + Math.max(0, Math.ceil(totalRemaining / gridCount));
+    if (currentPage === 1) {
+      paginatedStreams = streamsExcludingPinned.slice(0, rightSideGridCount);
+    } else {
+      const remaining = streamsExcludingPinned.slice(rightSideGridCount);
+      const start = (currentPage - 2) * gridCount;
+      paginatedStreams = remaining.slice(start, start + gridCount);
+    }
+  } else {
+    totalPages = Math.max(1, Math.ceil(streams.length / gridCount));
+    paginatedStreams = streams.slice((currentPage - 1) * gridCount, currentPage * gridCount);
+  }
 
   return (
     <div className={cn(
@@ -198,7 +220,7 @@ export default function DSSPage() {
           >
             <AuthCard
               title="Token Verification"
-              description={`A security token has been sent to ${email}. Please enter the ${TOKEN_LENGTH}-character code.`}
+              description={`A security token has been sent to ${email}. Please enter the 24-character code below.`}
               onSubmit={handleTokenSubmit}
             >
               <div className="space-y-4">
@@ -206,9 +228,9 @@ export default function DSSPage() {
                   <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                   <input
                     type="text"
-                    maxLength={TOKEN_LENGTH}
+                    maxLength={24}
                     required
-                    placeholder={`Enter ${TOKEN_LENGTH}-character token`}
+                    placeholder="Enter 24-character token"
                     style={{ backgroundColor: '#ffffff', opacity: 1 }}
                     className={cn(
                       "w-full rounded-lg border-2 border-border py-3 pl-10 pr-4 outline-none transition-all text-slate-900 font-mono text-sm tracking-wider uppercase focus:border-blue-600 focus:ring-0 shadow-sm",
@@ -222,7 +244,7 @@ export default function DSSPage() {
                   />
                 </div>
                 <div className="text-xs text-center text-slate-400 font-mono">
-                  {token.length}/{TOKEN_LENGTH} characters
+                  {token.length}/24 characters
                 </div>
                 {error && (
                   <motion.div
@@ -236,7 +258,7 @@ export default function DSSPage() {
                 )}
                 <button
                   type="submit"
-                  disabled={isLoading || token.length !== TOKEN_LENGTH}
+                  disabled={isLoading || token.length !== 24}
                   style={{ backgroundColor: 'var(--primary)', opacity: 1 }}
                   className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-white/20 py-3 font-bold text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-md"
                 >
@@ -262,157 +284,96 @@ export default function DSSPage() {
             key="dashboard"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex min-h-screen flex-col overflow-hidden bg-background lg:flex-row relative"
+            className="flex h-screen bg-slate-950 overflow-hidden relative mature-theme"
           >
             <NotificationManager />
-            {/* Mobile Sidebar Overlay */}
-            <AnimatePresence>
-              {isMobileMenuOpen && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
-                  />
-                  <motion.aside
-                    initial={{ x: '-100%' }}
-                    animate={{ x: 0 }}
-                    exit={{ x: '-100%' }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                    className="fixed inset-y-0 left-0 z-50 w-64 bg-card p-6 shadow-2xl lg:hidden"
-                  >
-                    <div className="flex items-center justify-between mb-10">
-                      <div className="flex items-center gap-2">
-                        <div className="bg-primary/10 px-2 py-6 rounded text-[10px] font-black tracking-[0.2em] text-primary uppercase">
-                          Menu
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="rounded-lg p-1 text-slate-500 hover:bg-muted"
-                      >
-                        <X className="h-6 w-6" />
-                      </button>
+            
+            {/* Scoped Mature Dashboard implementation */}
+            <div className="flex-1 flex flex-col relative">
+              <div className="absolute top-6 left-8 z-20 pointer-events-none">
+                <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 relative bg-white rounded-lg p-1.5 shadow-2xl border border-white/20">
+                        <Image src="/dss-logo.png" alt="DSS" fill className="object-contain p-1" />
                     </div>
-                    
-                    <nav className="space-y-2">
-                      <SidebarItem icon={<LayoutDashboard className="h-5 w-5" />} label="Overview" active onClick={() => setIsMobileMenuOpen(false)} />
-                      <SidebarItem icon={<Search className="h-5 w-5" />} label="Surveillance" onClick={() => setIsMobileMenuOpen(false)} />
-                      <SidebarItem icon={<Eye className="h-5 w-5" />} label="Intelligence" onClick={() => setIsMobileMenuOpen(false)} />
-                      <SidebarItem icon={<Bell className="h-5 w-5" />} label="Incidents" onClick={() => setIsMobileMenuOpen(false)} />
-                    </nav>
-                  </motion.aside>
-                </>
-              )}
-            </AnimatePresence>
-            {/* Sidebar (Desktop/Tablet) */}
-            <aside 
-              className={cn(
-                "hidden border-r border-border bg-card p-4 md:block transition-all duration-300 ease-in-out relative",
-                isSidebarCollapsed ? "w-20" : "w-64"
-              )}
-            >
-              <div className={cn("mb-8 flex items-center gap-3 px-2", isSidebarCollapsed && "justify-center px-0")}>
+                    <div className="flex flex-col">
+                        <h1 className="text-sm font-black text-white uppercase tracking-[0.2em] leading-none">Surveillance Feed</h1>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Sector: Command Center</span>
+                    </div>
+                </div>
+              </div>
+
+              <div className="flex-1 p-4 pb-24 mt-16 overflow-hidden">
+                {selectedStream && currentPage === 1 ? (
+                    <div className="flex gap-2 h-full w-full">
+                        <div className="flex-[3] h-full">
+                            <CameraStream
+                                isActive={true}
+                                src={selectedStream.src}
+                                onClick={() => pinStream(selectedStream)}
+                                personClick={() => setShowPersons(true)}
+                                showPersons={showPersons}
+                                setShowPersons={setShowPersons}
+                                streamFaces={streamFaces}
+                                selectedStream={selectedStream}
+                                personsLoading={personsLoading}
+                            />
+                        </div>
+                        <div className="flex-1 h-full flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-1">
+                            {paginatedStreams.map(s => (
+                                <div key={s.id} className="min-h-[220px]">
+                                    <CameraStream src={s.src} onClick={() => pinStream(s)} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className={cn(
+                        "grid gap-2 w-full h-full",
+                        gridCount === 4 ? "grid-cols-2" : gridCount === 6 ? "grid-cols-3" : "grid-cols-4"
+                    )}>
+                        {paginatedStreams.map(s => (
+                            <CameraStream key={s.id} src={s.src} onClick={() => pinStream(s)} />
+                        ))}
+                    </div>
+                )}
+              </div>
+
+              <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex gap-2">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={cn(
+                            "h-1.5 w-1.5 rounded-full transition-all",
+                            currentPage === i + 1 ? "bg-primary w-6" : "bg-slate-700 hover:bg-slate-500"
+                        )}
+                    />
+                ))}
+              </div>
+
+              <div className="absolute top-1/2 left-4 -translate-y-1/2 z-30">
                 <button 
-                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                  className="flex items-center gap-2 rounded-md hover:bg-accent p-1.5 transition-all group"
-                  title={isSidebarCollapsed ? "Expand Menu" : "Collapse Menu"}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-3 rounded-full bg-slate-900/60 text-white disabled:opacity-20 hover:bg-primary transition-all shadow-2xl"
                 >
-                  {isSidebarCollapsed ? <PanelLeftOpen className="h-5 w-5 text-primary" /> : <PanelLeftClose className="h-5 w-5 text-primary" />}
-                  {!isSidebarCollapsed && (
-                    <span className="text-xs font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Menu</span>
-                  )}
+                  <ChevronLeft className="h-6 w-6" />
                 </button>
               </div>
-              
-              <nav className="space-y-2">
-                <SidebarItem icon={<LayoutDashboard className="h-5 w-5" />} label="Overview" active collapsed={isSidebarCollapsed} />
-                <SidebarItem icon={<Search className="h-5 w-5" />} label="Surveil" collapsed={isSidebarCollapsed} />
-                <SidebarItem icon={<Eye className="h-5 w-5" />} label="Intel" collapsed={isSidebarCollapsed} />
-                <SidebarItem icon={<Bell className="h-5 w-5" />} label="Events" collapsed={isSidebarCollapsed} />
-              </nav>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col min-w-0 bg-background">
-              {/* Header */}
-              <header className="sticky top-0 z-50 bg-card shadow-md border-b border-border">
-                <div className="mx-auto w-full px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-white p-1 shadow-sm border border-border/50">
-                        <Image src="/dss-logo.png" alt="App Logo" fill className="object-contain p-1" sizes="40px" />
-                      </div>
-                      <div>
-                        <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight leading-none">Secure Data Monitor</h1>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hidden sm:block mt-1 opacity-70"> DSS</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-6">
-                      <div className="hidden md:flex flex-col items-end text-sm">
-                        <span className="font-bold text-foreground">Officer {email.split('@')[0]}</span>
-                        <span className="text-xs font-bold text-muted-foreground opacity-80">Authorized Access</span>
-                      </div>
-                      <div className="relative">
-                        <NotificationBell />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </header>
-
-              <div className="bg-background px-6 py-6 border-b border-border/50">
-                <div className="max-w-7xl mx-auto">
-                   <h2 className="text-3xl font-black text-foreground tracking-tight">Overview</h2>
-                   <div className="h-1.5 w-12 bg-primary rounded-full mt-2" />
-                </div>
+              <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30">
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-3 rounded-full bg-slate-900/60 text-white disabled:opacity-20 hover:bg-primary transition-all shadow-2xl"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
               </div>
 
-              {/* Dashboard Content */}
-              <div className="flex-1 overflow-auto p-6 space-y-6">
-                 {/* Stats Grid */}
-                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-                    <StatsCard label="Active Nodes" value="2,482" change="+12.5%" color="cyan" />
-                    <StatsCard label="Traffic Pulse" value="184 GB/s" change="-2.1%" color="emerald" />
-                    <StatsCard label="Security Alerts" value="03" change="NORMAL" color="blue" />
-                    <StatsCard label="Uptime" value="99.98%" change="OPTIMAL" color="cyan" />
-                 </div>
+              <BottomMenu handleMenu={handleMenu} handleGridCount={handleGridCount} router={router} />
+            </div>
 
-                 {/* Visualization Stubs */}
-                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <div 
-                      style={{ borderColor: 'var(--card-border)' }}
-                      className="lg:col-span-2 rounded-xl border-2 bg-card p-6 h-[400px] flex flex-col shadow-sm"
-                    >
-                       <h3 className="text-sm font-bold text-slate-500 mb-6 font-mono tracking-wider uppercase">Surveillance Feed Matrix</h3>
-                       <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-2 opacity-50 relative">
-                          {[...Array(6)].map((_, i) => (
-                             <div key={i} className="bg-muted rounded flex items-center justify-center font-mono text-[10px] text-muted-foreground border border-border">
-                                CAM_RE_{i+100}
-                             </div>
-                          ))}
-                       </div>
-                    </div>
-                    <div 
-                      style={{ borderColor: 'var(--card-border)' }}
-                      className="rounded-xl border-2 bg-card p-6 h-[400px] shadow-sm"
-                    >
-                       <h3 className="text-sm font-bold text-slate-500 mb-6 font-mono tracking-wider uppercase">Threat Logs</h3>
-                       <div className="space-y-4 overflow-hidden">
-                          {[...Array(5)].map((_, i) => (
-                             <div key={i} className="flex gap-4 text-xs font-mono border-l-4 border-blue-500 pl-3">
-                                <span className="text-muted-foreground/60">14:0{i}:22</span>
-                                <span className="text-foreground font-bold">SYSTEM_ALERT_ID_{392+i}</span>
-                             </div>
-                          ))}
-                       </div>
-                    </div>
-                 </div>
-              </div>
-            </main>
+            <NotificationSidebar />
           </motion.div>
         )}
       </AnimatePresence>
@@ -429,7 +390,7 @@ function AuthCard({ title, description, children, onSubmit }: { title: string, d
       <div className="mb-6 text-center">
         <div className="flex justify-center mb-6">
            <div className="relative h-24 w-24">
-              <Image src="/dss-logo.png" alt="DSS Logo" fill className="object-contain" sizes="(max-width: 768px) 96px, 96px" />
+              <Image src="/dss-logo.png" alt="DSS Logo" fill className="object-contain" />
            </div>
         </div>
         <h2 
@@ -446,45 +407,6 @@ function AuthCard({ title, description, children, onSubmit }: { title: string, d
       <form onSubmit={onSubmit} className="space-y-4">
         {children}
       </form>
-    </div>
-  );
-}
-
-function SidebarItem({ icon, label, active = false, onClick, collapsed = false }: { icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void, collapsed?: boolean }) {
-  return (
-    <button 
-      onClick={onClick}
-      title={collapsed ? label : undefined}
-      className={cn(
-      "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold transition-all",
-      active ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:shadow-sm",
-      collapsed && "justify-center px-0"
-    )}>
-      <div className={cn("min-w-[20px]", collapsed && "flex justify-center")}>{icon}</div>
-      {!collapsed && <span className="whitespace-nowrap">{label}</span>}
-    </button>
-  );
-}
-
-function StatsCard({ label, value, change, color }: { label: string, value: string, change: string, color: 'cyan' | 'emerald' | 'blue' }) {
-  const colorClasses = {
-    cyan: "text-blue-600 border-blue-600 bg-blue-100 dark:bg-blue-900",
-    emerald: "text-emerald-600 border-emerald-600 bg-emerald-100 dark:bg-emerald-900",
-    blue: "text-indigo-600 border-indigo-600 bg-indigo-100 dark:bg-indigo-900",
-  };
-
-  return (
-    <div 
-      style={{ backgroundColor: 'var(--card)', borderColor: 'var(--card-border)' }}
-      className="rounded-xl border-2 p-5 shadow-md transition-shadow"
-    >
-      <p className="text-xs font-bold text-muted-foreground font-mono tracking-wider mb-2 uppercase">{label}</p>
-      <div className="flex items-end justify-between">
-        <h4 className="text-2xl font-bold text-foreground">{value}</h4>
-        <div className={cn("rounded-full border-2 px-2.5 py-1 text-[10px] font-bold tracking-tight", colorClasses[color])}>
-           {change}
-        </div>
-      </div>
     </div>
   );
 }
