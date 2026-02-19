@@ -13,12 +13,14 @@ import { setAccessToken } from '@/store/slices/authSlice';
 import { setUser } from '@/store/slices/userSlice';
 import { requestOTP, verifyOTP } from '@/lib/api';
 import { useNotifications } from '@/hooks/useNotifications';
-import { NotificationManager } from '@/components/NotificationManager';
+
 
 // New Components
 import CameraStream from '@/components/CameraStream';
 import NotificationSidebar from '@/components/NotificationSidebar';
 import BottomMenu from '@/components/BottomMenu';
+import NotificationToast from '@/components/NotificationToast';
+import PersonDetailModal from '@/components/PersonDetailModal';
 
 export default function DSSPage() {
   const [step, setStep] = useState<'email' | 'token' | 'dashboard'>('email');
@@ -36,6 +38,8 @@ export default function DSSPage() {
   const [personsLoading, setPersonsLoading] = useState(false);
   const [streamFaces, setStreamFaces] = useState<any[]>([]);
   const [menuActive, setMenuActive] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<any | null>(null);
 
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -284,9 +288,9 @@ export default function DSSPage() {
             key="dashboard"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex h-screen bg-slate-950 overflow-hidden relative mature-theme"
+            className="flex h-screen bg-background overflow-hidden relative mature-theme"
           >
-            <NotificationManager />
+
             
             {/* Scoped Mature Dashboard implementation */}
             <div className="flex-1 flex flex-col relative">
@@ -296,7 +300,7 @@ export default function DSSPage() {
                         <Image src="/dss-logo.png" alt="DSS" fill className="object-contain p-1" />
                     </div>
                     <div className="flex flex-col">
-                        <h1 className="text-sm font-black text-white uppercase tracking-[0.2em] leading-none">Surveillance Feed</h1>
+                        <h1 className="text-sm font-black text-gray-800 uppercase tracking-[0.2em] leading-none">Surveillance Feed</h1>
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Sector: Command Center</span>
                     </div>
                 </div>
@@ -371,9 +375,42 @@ export default function DSSPage() {
               </div>
 
               <BottomMenu handleMenu={handleMenu} handleGridCount={handleGridCount} router={router} />
+              
+              {/* Sidebar Expand Button (Floating) */}
+              <AnimatePresence>
+                {sidebarCollapsed && (
+                  <motion.button
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    onClick={() => setSidebarCollapsed(false)}
+                    className="absolute top-6 right-6 z-50 p-2.5 rounded-full bg-white shadow-xl border border-border/20 text-slate-600 hover:text-primary transition-all hover:scale-110"
+                    title="Open Notifications"
+                  >
+                    <div className="relative">
+                      <Bell className="h-5 w-5" />
+                      <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    </div>
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </div>
 
-            <NotificationSidebar />
+            <NotificationSidebar 
+              isCollapsed={sidebarCollapsed} 
+              onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+              onSelect={(notif) => setSelectedNotification(notif)}
+            />
+
+            <NotificationToast 
+              sidebarCollapsed={sidebarCollapsed} 
+              onSelect={(notif) => setSelectedNotification(notif)} 
+            />
+
+            <PersonDetailModal 
+              notification={selectedNotification} 
+              onClose={() => setSelectedNotification(null)} 
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -390,7 +427,7 @@ function AuthCard({ title, description, children, onSubmit }: { title: string, d
       <div className="mb-6 text-center">
         <div className="flex justify-center mb-6">
            <div className="relative h-24 w-24">
-              <Image src="/dss-logo.png" alt="DSS Logo" fill className="object-contain" />
+              <Image src="/dss-logo.png" alt="DSS Logo" fill sizes="96px" className="object-contain" />
            </div>
         </div>
         <h2 

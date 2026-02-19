@@ -106,20 +106,20 @@
   }
 
   .mature-theme {
-    /* Scoped Mature Dashboard Design */
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    --card: #1e293b;
-    --card-foreground: #f8fafc;
-    --primary: #f8fafc;
-    --primary-foreground: #0f172a;
-    --secondary: #475569;
-    --border: #334155;
-    --muted: #334155;
-    --muted-foreground: #94a3b8;
-    --card-border: #334155;
-    --blue-grey: #455a64;
-    --grid-color: #334155;
+    /* Scoped Mature Dashboard Design - WHITE & BLUE SCHEME */
+    --background: #ffffff;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --primary: #2563eb;
+    --primary-foreground: #ffffff;
+    --secondary: #f1f5f9;
+    --border: #2563eb;
+    --muted: #f8fafc;
+    --muted-foreground: #64748b;
+    --card-border: #2563eb;
+    --blue-grey: #607d8b;
+    --grid-color: #e2e8f0;
     font-family: var(--font-inter), sans-serif;
   }
 }
