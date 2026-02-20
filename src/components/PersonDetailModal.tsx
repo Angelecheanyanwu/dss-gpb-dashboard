@@ -29,7 +29,7 @@ const TypewriterText: React.FC<{ text: string; delay?: number }> = ({ text, dela
   }, [text, delay]);
 
   return <span>{displayedText}</span>;
-};
+}; 
 
 const PersonDetailModal: React.FC<PersonDetailModalProps> = ({ notification, onClose }) => {
   if (!notification) return null;
@@ -64,17 +64,14 @@ const PersonDetailModal: React.FC<PersonDetailModalProps> = ({ notification, onC
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(135deg,rgba(255,255,255,0.4)_0%,rgba(255,255,255,0)_50%,rgba(255,255,255,0.1)_100%)]" />
           
           <div className="relative z-10 flex flex-col md:flex-row h-full max-h-[80vh]">
-            {/* Left side: Face Capture */}
             <div className="w-full md:w-1/2 p-8 flex flex-col items-center justify-center gap-6 border-b md:border-b-0 md:border-r border-slate-100">
                <div className="relative w-48 h-48 rounded-full overflow-hidden border-4 border-primary/20 shadow-2xl">
-                  {/* Mock Capture Box Effects */}
                   <div className="absolute inset-0 z-10 border border-primary/30 animate-pulse pointer-events-none" />
                   <div className="absolute inset-0 z-10 bg-[linear-gradient(transparent_0%,rgba(37,99,235,0.05)_50%,transparent_100%)] h-1/4 w-full animate-scanline pointer-events-none" />
                   
                   <div className="absolute inset-0 bg-slate-100 flex items-center justify-center">
                     <User className="h-24 w-24 text-slate-300" />
                   </div>
-                  {/* If we had a real image, we'd use it here */}
                </div>
                
                <div className="text-center">
@@ -87,8 +84,6 @@ const PersonDetailModal: React.FC<PersonDetailModalProps> = ({ notification, onC
                   </div>
                </div>
             </div>
-
-            {/* Right side: Metadata Typewriter */}
             <div className="w-full md:w-1/2 p-8 flex flex-col gap-6 bg-slate-50/30">
                <div className="flex items-center justify-between mb-2">
                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Incident Dossier</h3>
@@ -116,9 +111,6 @@ const PersonDetailModal: React.FC<PersonDetailModalProps> = ({ notification, onC
                </div>
 
                <div className="mt-auto pt-6 flex gap-2">
-                 <button className="flex-1 py-3 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg active:scale-95">
-                   Apprehend POI
-                 </button>
                  <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95">
                    Close File
                  </button>
