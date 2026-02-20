@@ -47,9 +47,6 @@ axiosInstance.interceptors.response.use(
         // Could dispatch clearAuth action here if needed
         console.error('Unauthorized - token may be invalid or expired');
       }
-    } else if (error.request) {
-      // Request was made but no response received
-      console.error('Network Error:', error.message);
     } else {
       // Something else happened
       console.error('Error:', error.message);

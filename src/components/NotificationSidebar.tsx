@@ -1,7 +1,10 @@
+
+
 "use client";
 
 import React from 'react';
 import { Bell, AlertTriangle, ShieldCheck, Zap, Info, History, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { clearNotifications, markAsRead } from '@/store/slices/notificationSlice';
@@ -66,102 +69,134 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isCollapsed, 
   };
 
   return (
-    <div className={cn(
-      "h-full flex flex-col relative overflow-hidden bg-white border-l border-border transition-all duration-500 ease-in-out shadow-xl",
-      isCollapsed ? "w-0 border-l-0" : "w-80"
-    )}>
-      {/* Mirror Glass Reflection Effect */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-white/80 via-transparent to-slate-200/30 font-inter" />
-      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(135deg,rgba(255,255,255,0.4)_0%,rgba(255,255,255,0)_50%,rgba(255,255,255,0.1)_100%)]" />
-      
-      <div className={cn(
-        "relative z-10 flex flex-col h-full transition-opacity duration-300",
-        isCollapsed ? "opacity-0 invisible" : "opacity-100 visible"
-      )}>
-        <div className="p-5 border-b border-border/20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-gray-500 font-black" />
-            <h2 className="text-xs text-center font-black text-slate-900 uppercase tracking-widest">Notifications</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={onToggle}
-              className="group flex items-center gap-1.5 px-2 py-1 rounded-md border border-slate-200 bg-white text-slate-950 hover:text-gray-500 transition-all duration-300 shadow-sm active:scale-95"
-              title="Close Sidebar"
-            >
-              <X className="h-3.5 w-3.5 transition-transform group-hover:rotate-90" />
-              <span className="text-[9px] font-black uppercase tracking-widest">Close</span>
-            </button>
-            </div>
+    <AnimatePresence>
+      {!isCollapsed && (
+        <>
+          {/* Backdrop — subtle, clicking closes sidebar */}
+          <motion.div
+            key="sidebar-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-40 bg-black/10 pointer-events-auto"
+            onClick={onToggle}
+          />
 
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
-          {notifications.map((notif) => {
-            const styles = getClassificationStyles(notif.classification);
-            const Icon = styles.icon;
-            
-            return (
-              <div 
-                key={notif.id}
-                onClick={() => {
-                  dispatch(markAsRead(notif.id));
-                  onSelect(notif);
-                }}
-                className={cn(
-                  "p-3 rounded-xl border flex flex-col gap-2 transition-all hover:translate-x-1 cursor-pointer group relative",
-                  styles.bg,
-                  !notif.isRead && "ring-1 ring-primary/20"
-                )}
-              >
-                {!notif.isRead && (
-                  <div className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-primary" />
-                )}
-                <div className="flex items-start justify-between">
-                  <div className={cn("p-1.5 rounded-lg border", styles.iconBg)}>
-                    <Icon className="h-3 w-3" />
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-[9px] font-mono text-slate-500 group-hover:text-slate-700 transition-colors">
-                      {new Date(notif.timestamp).toLocaleTimeString()}
-                    </span>
-                    <span className={cn("text-[7px] font-black uppercase tracking-tighter", styles.label)}>
-                      {notif.classification}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="flex flex-col gap-1">
-                  <p className="text-[11px] font-bold text-slate-900 leading-relaxed">
-                    <span className="text-primary">{notif.person_name}</span> detected at {notif.camera_location} of {notif.camera_id}, assigned a tracking ID <span className="font-mono text-[9px] text-slate-500">{notif.tracking_id}</span>
-                  </p>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
-                      Confidence: {(notif.confidence * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          {notifications.length === 0 && (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 opacity-50 py-20">
-              <History className="h-8 w-8 mb-2" />
-              <p className="text-[10px] font-bold uppercase tracking-widest">No recent incidents</p>
-            </div>
-          )}
-        </div>
-
-        <div className="p-4 bg-slate-50 border-t border-border/20">
-          <button 
-            onClick={() => dispatch(clearNotifications())}
-            className="w-full py-2.5 rounded-lg bg-white hover:bg-slate-50 text-[10px] font-black text-slate-600 uppercase tracking-widest border border-slate-200 transition-all shadow-sm flex items-center justify-center gap-2"
+          {/* Floating Sidebar Panel — does NOT push layout */}
+          <motion.div
+            key="sidebar-panel"
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 35 }}
+            className="fixed top-0 right-0 h-full w-80 z-50 flex flex-col overflow-hidden bg-white border-l border-border shadow-2xl"
           >
-            Clear Ledger <X className="h-3 w-3" />
-          </button>
-        </div>
-      </div>
-    </div>
+            {/* Mirror Glass Reflection */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-white/80 via-transparent to-slate-200/30" />
+            <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(135deg,rgba(255,255,255,0.4)_0%,rgba(255,255,255,0)_50%,rgba(255,255,255,0.1)_100%)]" />
+
+            <div className="relative z-10 flex flex-col h-full">
+              {/* Header */}
+              <div className="p-5 border-b border-border/20 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="h-4 w-4 text-gray-500" />
+                  <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">Notifications</h2>
+                </div>
+                <button
+                  onClick={onToggle}
+                  className="group flex items-center gap-1.5 px-2 py-1 rounded-md border border-slate-200 bg-white text-slate-950 hover:text-gray-500 transition-all duration-300 shadow-sm active:scale-95"
+                  title="Close Sidebar"
+                >
+                  <X className="h-3.5 w-3.5 transition-transform group-hover:rotate-90" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Close</span>
+                </button>
+              </div>
+
+              {/* Notification List — newest on top, others slide down */}
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
+                <AnimatePresence initial={false}>
+                  {notifications.map((notif) => {
+                    const styles = getClassificationStyles(notif.classification);
+                    const Icon = styles.icon;
+
+                    return (
+                      <motion.div
+                        key={notif.id}
+                        layout
+                        initial={{ x: 60, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: 60, opacity: 0, height: 0, marginBottom: 0 }}
+                        transition={{
+                          layout: { type: 'spring', stiffness: 300, damping: 30 },
+                          x: { type: 'spring', stiffness: 260, damping: 28 },
+                          opacity: { duration: 0.2 },
+                        }}
+                        onClick={() => {
+                          dispatch(markAsRead(notif.id));
+                          onSelect(notif);
+                        }}
+                        className={cn(
+                          "p-3 rounded-xl border flex flex-col gap-2 transition-colors hover:translate-x-1 cursor-pointer group relative",
+                          styles.bg,
+                          !notif.isRead && "ring-1 ring-primary/20"
+                        )}
+                      >
+                        {!notif.isRead && (
+                          <div className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-primary" />
+                        )}
+                        <div className="flex items-start justify-between">
+                          <div className={cn("p-1.5 rounded-lg border", styles.iconBg)}>
+                            <Icon className="h-3 w-3" />
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-[9px] font-mono text-slate-500 group-hover:text-slate-700 transition-colors">
+                              {new Date(notif.timestamp).toLocaleTimeString()}
+                            </span>
+                            <span className={cn("text-[7px] font-black uppercase tracking-tighter", styles.label)}>
+                              {notif.classification}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <p className="text-[11px] font-bold text-slate-900 leading-relaxed">
+                            <span className="text-primary">{notif.person_name}</span> detected at {notif.camera_location} of {notif.camera_id}, assigned tracking ID{' '}
+                            <span className="font-mono text-[9px] text-slate-500">{notif.tracking_id}</span>
+                          </p>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                              Confidence: {(notif.confidence * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+
+                {notifications.length === 0 && (
+                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 opacity-50 py-20">
+                    <History className="h-8 w-8 mb-2" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest">No recent incidents</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-slate-50 border-t border-border/20">
+                <button
+                  onClick={() => dispatch(clearNotifications())}
+                  className="w-full py-2.5 rounded-lg bg-white hover:bg-slate-50 text-[10px] font-black text-slate-600 uppercase tracking-widest border border-slate-200 transition-all shadow-sm flex items-center justify-center gap-2"
+                >
+                  Clear Ledger <X className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
