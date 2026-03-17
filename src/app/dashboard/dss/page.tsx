@@ -14,9 +14,9 @@ import { setUser } from '@/store/slices/userSlice';
 import { requestOTP, verifyOTP } from '@/lib/api';
 import { useNotifications } from '@/hooks/useNotifications';
 
-
 // New Components
 import CameraStream from '@/components/CameraStream';
+import { useUnreadCount } from '@/hooks/useUnreadCount';
 import NotificationSidebar from '@/components/NotificationSidebar';
 import BottomMenu from '@/components/BottomMenu';
 import NotificationToast from '@/components/NotificationToast';
@@ -29,7 +29,7 @@ export default function DSSPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Dashboard State (New)
+  // Dashboard State
   const [selectedStream, setSelectedStream] = useState<any | undefined>();
   const [streams, setStreams] = useState<any[]>([]);
   const [gridCount, setGridCount] = useState(6);
@@ -45,8 +45,10 @@ export default function DSSPage() {
   const router = useRouter();
   useNotifications();
 
+  // Live unread count from Redux store
+  const unreadCount = useUnreadCount();
+
   useEffect(() => {
-    // Hardcoded camera streams
     const hardcodedStreams = [
       { id: 66, src: `http://192.168.100.102:8889/live/ks047o-D-66` },
       { id: 64, src: `http://192.168.100.102:8889/live/ks047o-A-64` },
@@ -64,7 +66,6 @@ export default function DSSPage() {
     e.preventDefault();
     setError(null);
     
-    // Reverting to the @dss.gov.ng check as per user snippet
     if (!email.endsWith('@gmail.com')) {
       setError('Access restricted to authorized @dss.gov.ng email addresses.');
       return;
@@ -72,7 +73,6 @@ export default function DSSPage() {
 
     setIsLoading(true);
     try {
-      // Keep real API call but match flow
       await requestOTP(email);
       setStep('token');
     } catch (err: any) {
@@ -86,7 +86,6 @@ export default function DSSPage() {
     e.preventDefault();
     setError(null);
 
-    // Reverting to 6-digit token check
     if (token.length !== 24) {
       setError('Please enter a valid 6-digit security token.');
       return;
@@ -111,7 +110,6 @@ export default function DSSPage() {
     }
   };
 
-  // Surveillance Logic (New)
   const handleGridCount = () => {
     setGridCount((prev) => (prev >= 12 ? 4 : prev + 2));
     setCurrentPage(1);
@@ -290,68 +288,66 @@ export default function DSSPage() {
             animate={{ opacity: 1 }}
             className="flex h-screen bg-background overflow-hidden relative mature-theme"
           >
-
-            
             {/* Scoped Mature Dashboard implementation */}
             <div className="flex-1 flex flex-col relative">
               <div className="absolute top-6 left-8 z-20 pointer-events-none">
                 <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 relative bg-white rounded-lg p-1.5 shadow-2xl border border-white/20">
-                        <Image src="/dss-logo.png" alt="DSS" fill className="object-contain p-1" />
-                    </div>
-                    <div className="flex flex-col">
-                        <h1 className="text-sm font-black text-gray-800 uppercase tracking-[0.2em] leading-none">Surveillance Feed</h1>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Sector: Command Center</span>
-                    </div>
+                  <div className="h-10 w-10 relative bg-white rounded-lg p-1.5 shadow-2xl border border-white/20">
+                    <Image src="/dss-logo.png" alt="DSS" fill sizes="40px" className="object-contain p-1" />
+                  </div>
+                  <div className="flex flex-col">
+                    <h1 className="text-sm font-black text-gray-800 uppercase tracking-[0.2em] leading-none">Surveillance Feed</h1>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Sector: Command Center</span>
+                  </div>
                 </div>
               </div>
 
               <div className="flex-1 p-4 pb-24 mt-16 overflow-hidden">
                 {selectedStream && currentPage === 1 ? (
-                    <div className="flex gap-2 h-full w-full">
-                        <div className="flex-[3] h-full">
-                            <CameraStream
-                                isActive={true}
-                                src={selectedStream.src}
-                                onClick={() => pinStream(selectedStream)}
-                                personClick={() => setShowPersons(true)}
-                                showPersons={showPersons}
-                                setShowPersons={setShowPersons}
-                                streamFaces={streamFaces}
-                                selectedStream={selectedStream}
-                                personsLoading={personsLoading}
-                            />
-                        </div>
-                        <div className="flex-1 h-full flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-1">
-                            {paginatedStreams.map(s => (
-                                <div key={s.id} className="min-h-[220px]">
-                                    <CameraStream src={s.src} onClick={() => pinStream(s)} />
-                                </div>
-                            ))}
-                        </div>
+                  <div className="flex gap-2 h-full w-full">
+                    <div className="flex-[3] h-full">
+                      <CameraStream
+                        isActive={true}
+                        src={selectedStream.src}
+                        onClick={() => pinStream(selectedStream)}
+                        personClick={() => setShowPersons(true)}
+                        showPersons={showPersons}
+                        setShowPersons={setShowPersons}
+                        streamFaces={streamFaces}
+                        selectedStream={selectedStream}
+                        personsLoading={personsLoading}
+                      />
                     </div>
+                    <div className="flex-1 h-full flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-1">
+                      {paginatedStreams.map(s => (
+                        <div key={s.id} className="min-h-[220px]">
+                          <CameraStream src={s.src} onClick={() => pinStream(s)} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ) : (
-                    <div className={cn(
-                        "grid gap-2 w-full h-full",
-                        gridCount === 4 ? "grid-cols-2" : gridCount === 6 ? "grid-cols-3" : "grid-cols-4"
-                    )}>
-                        {paginatedStreams.map(s => (
-                            <CameraStream key={s.id} src={s.src} onClick={() => pinStream(s)} />
-                        ))}
-                    </div>
+                  <div className={cn(
+                    "grid gap-2 w-full h-full",
+                    gridCount === 4 ? "grid-cols-2" : gridCount === 6 ? "grid-cols-3" : "grid-cols-4"
+                  )}>
+                    {paginatedStreams.map(s => (
+                      <CameraStream key={s.id} src={s.src} onClick={() => pinStream(s)} />
+                    ))}
+                  </div>
                 )}
               </div>
 
               <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex gap-2">
                 {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
-                        key={i}
-                        onClick={() => setCurrentPage(i + 1)}
-                        className={cn(
-                            "h-1.5 w-1.5 rounded-full transition-all",
-                            currentPage === i + 1 ? "bg-primary w-6" : "bg-slate-700 hover:bg-slate-500"
-                        )}
-                    />
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full transition-all",
+                      currentPage === i + 1 ? "bg-primary w-6" : "bg-slate-700 hover:bg-slate-500"
+                    )}
+                  />
                 ))}
               </div>
 
@@ -376,7 +372,7 @@ export default function DSSPage() {
 
               <BottomMenu handleMenu={handleMenu} handleGridCount={handleGridCount} router={router} />
               
-              {/* Sidebar Expand Button (Floating) */}
+              {/* Floating Bell Button — shows live unread count */}
               <AnimatePresence>
                 {sidebarCollapsed && (
                   <motion.button
@@ -389,7 +385,20 @@ export default function DSSPage() {
                   >
                     <div className="relative">
                       <Bell className="h-5 w-5" />
-                      <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
+                      <AnimatePresence>
+                        {unreadCount > 0 && (
+                          <motion.span
+                            key={unreadCount}
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+                            className="absolute -top-2 -right-2 min-w-[16px] h-[16px] px-[3px] rounded-full bg-primary text-white text-[8px] font-black flex items-center justify-center leading-none tabular-nums"
+                          >
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </motion.button>
                 )}
@@ -426,18 +435,14 @@ function AuthCard({ title, description, children, onSubmit }: { title: string, d
     >
       <div className="mb-6 text-center">
         <div className="flex justify-center mb-6">
-           <div className="relative h-24 w-24">
-              <Image src="/dss-logo.png" alt="DSS Logo" fill sizes="96px" className="object-contain" />
-           </div>
+          <div className="relative h-24 w-24">
+            <Image src="/dss-logo.png" alt="DSS Logo" fill sizes="96px" className="object-contain" />
+          </div>
         </div>
-        <h2 
-          className="mb-2 text-2xl font-bold tracking-tight text-white"
-        >
+        <h2 className="mb-2 text-2xl font-bold tracking-tight text-white">
           {title}
         </h2>
-        <p 
-          className="text-sm font-bold text-white/80"
-        >
+        <p className="text-sm font-bold text-white/80">
           {description}
         </p>
       </div>

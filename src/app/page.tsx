@@ -72,14 +72,14 @@ export default function Home() {
               <OptionCard 
                 href="/dashboard/itl"
                 title="ITL"
-                icon={<div className="relative mb-4 h-16 w-40 overflow-hidden"><Image src="/itl-logo-v2-transparent.png" alt="ITL Logo" fill className="object-contain" /></div>}
+                icon={<div className="relative mb-4 h-16 w-40 overflow-hidden"><Image src="/itl-logo-v2-transparent.png" alt="ITL Logo" fill sizes="160px" className="object-contain" /></div>}
                 description="Inspired Technologies Limited"
                 color="blue"
               />
               <OptionCard 
                 href="/dashboard/dss"
                 title="DSS"
-                icon={<div className="relative mb-2 h-16 w-16 overflow-hidden rounded-full"><Image src="/dss-logo.png" alt="DSS Logo" fill className="object-contain" /></div>}
+                icon={<div className="relative mb-2 h-16 w-16 overflow-hidden rounded-full"><Image src="/dss-logo.png" alt="DSS Logo" fill sizes="64px" className="object-contain" /></div>}
                 description="Department of State Services"
                 color="cyan"
               />
